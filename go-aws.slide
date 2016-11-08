@@ -90,6 +90,16 @@ Uses:
 
 .image go-aws/aws-sdk-go-screenshot.png
 
+* AWS SDK for Go
+
+- Auto-generated from API definition specs  _(JSON_documents_similar_to_Swagger)_
+- Not always "idiomatic Go"
+
+.code go-aws/s3test.go /package/,/func main/
+
+* AWS SDK for Go (con't)
+.code go-aws/s3test.go /func main/,
+
 * Mechanical Turk API for Go
 .link https://github.com/jjeffery/mechturk
 
@@ -100,8 +110,83 @@ Uses:
 
 - Application container
 - Standard recipies for load balancing, auto-scaling
+- Tools for application versioning and deployment
 - Supports Java, .NET, PHP, Python, Ruby, generic Docker ...
 - ... and Go 1.5
 
 .image go-aws/elastic-beanstalk-go15.png
 .html go-aws/elastic-beanstalk-callout.html
+
+* Elastic Beanstalk: Application Versions
+
+- Provides tools for application versioning and deployment
+- When deploying to Go environments, the application bundle is a ZIP file
+
+.image go-aws/application-versions.png
+
+* Elastic Beanstalk: ZIP file for Go environments
+.html go-aws/eb-zipfile.html
+- Very simple layout
+- `Procfile` defines processes
+- Optional `.ebextensions` directory for additional config
+- Supported version of Go only matters if you ship source code
+- Ship a linux-amd64 binary instead of source and you can use whatever Go version you like (I'm using 1.7.3)
+
+My `Procfile` looks something like this:
+
+ web:   bin/edd-server web --listen :5000
+ batch: bin/edd-server batch
+
+* Elastic Beanstalk: Extensions directory
+
+- Lots of environment-specific configuration (especially for Tomcat, IIS)
+- Install RPMs
+- Create files
+- Example of adding `cron` entry:
+
+ files:
+   "/etc/cron.d/edd-server":
+     mode: "000644"
+     owner: root
+     group: root
+     encoding: plain
+     content: |
+       SHELL=/bin/bash
+       HOME=/var/app/current
+       PATH=/usr/local/bin:/bin:/usr/bin:/usr/local/sbin:/usr/sbin:/sbin:/opt/aws/bin
+       0 * * * * webapp bin/edd-server dbsync >> /var/log/dbsync.log 2>&1
+
+(Entry for `logrotate` for `/var/log/dbsync.log` not shown).
+
+* Elastic Beanstalk: Go environment
+
+- Amazon Linux
+- Go development environment and `GOPATH` (but it's Go 1.5)
+- `nginx` reverse proxy
+- `supervisord` for process monitoring
+- Elastic Beanstalk scripts for appliction update (ruby)
+
+.image go-aws/ebssh.png
+
+* Very briefly
+
+*Monitoring*
+
+- CloudWatch provides extensive monitoring stats
+- Elastic Beanstalk uses CloudWatch to provide some basic but useful information
+- Not used for custom monitoring, planning to go to Prometheus for that
+
+*Logging*
+
+- AWS does not have a good solution for this
+- They seem to have left it to 3rd party vendors (we use Loggly, but I'm interested in recommendations)
+
+* Next Steps
+
+Docker and ECS
+
+- Moving processes to individual containers
+
+Lambda
+
+- Cost-effective hosting for low-volume web applictions
