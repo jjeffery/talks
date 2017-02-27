@@ -1,0 +1,47 @@
+
+When in Go do as Gophers do
+
+- Testing
+- Web frameworks
+
+(https://peter.bourgon.org/go-best-practices-2016/#testing)
+
+* Preparing for dual operation
+
+- Replace ASP.NET forms-based authentication
+- 
+
+* Reduce the surface area
+
+- Migrate web app away from Visual Studio .NET tooling
+- Build 'stand-alone' JS client using only standard JS tooling (npm, gulp, webpack, ...)
+- Visual Studio for ASP.NET, Visual Studio Code for web application
+
+* Pause
+
+- At this point we had an ASP.NET application that seemed an improvement
+- Not dissimilar to migrating to ASP.NET Core x.x
+
+* Compatibility
+
+- Build equivalent scaffolding using Go templates to match Razor templates (image here)
+
+
+* Context
+
+The context package is the closest thing to Thread Local Storage.
+
+Don't use it for TLS. Migrating to Go
+
+use context to store values, like strings and data structs; avoid using it to store references, like pointers or handles. As Sameer pointed out, this isn’t a bulletproof rule: you could make a case for a request-scoped logger, which could go into the context. But it’s a good place to start. (Peter Bourgon).
+
+* Deployment
+
+As more general advice, think carefully before choosing a platform or orchestration system—if you even choose one at all. Likewise for jumping onto the microservices bandwagon. An elegant monolith, deployed as an AMI to an autoscaling EC2 group, is a very productive setup for small teams. Resist, or at least carefully consider, the hype.
+
+(https://peter.bourgon.org/go-best-practices-2016/)
+
+* What do I miss?
+
+- One thing really: decent debugger
+
