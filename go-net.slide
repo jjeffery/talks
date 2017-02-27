@@ -28,7 +28,6 @@ Third party libraries:
 * Our Motivation
 
 - For us, .NET is legacy for server-side code
-- One component in .NET, the rest in Go
 - Desire to consolidate code base
 
 Not to mention
@@ -100,7 +99,7 @@ At this point:
 
 - We had an ASP.NET application that seemed an improvement
 - Not entirely dissimilar to migrating to ASP.NET Core x.x
-- No Go code had to been written to get to this stage
+- No Go code was needed to get to this stage
 
 * Implement Server API Endpoints in Go
 
@@ -132,8 +131,10 @@ Useful for
 
 To a .NET developer, the `context` package is an interesting combination of:
 
-- `System.Threading.CancellationToken`
+- `System.Threading.CancellationToken`; and
 - Thread Local Storage
+
+.code go-net/context-example.go /START OMIT/,/END OMIT/
 
 * Don't use package context for thread local storage
 
@@ -177,5 +178,5 @@ In the process of migrating this project to Go I contributed to:
 
 * What do I miss?
 
-- One thing only. A decent debugger
+- The VS debugger.
 
