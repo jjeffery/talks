@@ -1,47 +1,181 @@
+Migrating a .NET application to Go
+Lessons learned
+27 Feb 2017
+Tags: microsoft .net
 
-When in Go do as Gophers do
+John Jeffery
+jjeffery@sp.com.au
+https://github.com/jjeffery
 
-- Testing
-- Web frameworks
+* Background
 
-(https://peter.bourgon.org/go-best-practices-2016/#testing)
+- Web application
+- Originally written as a proof of concept
+- ASP.NET MVC
+- AWS: DynamoDB, S3, SimpleDB
+- DB: SQL Server
+
+Third party libraries:
+
+- AWS SDK
+- Braintree payments
+- Castle Windsor
+- NHibernate
+
+.html go-net/eddc-screenshot.html
+.html go-net/alt-net.html
+
+* Our Motivation
+
+- For us, .NET is legacy for server-side code
+- One component in .NET, the rest in Go
+- Desire to consolidate code base
+
+Not to mention
+
+- Simplified deployment and management
+- Smaller VMs
+- Simpler licensing
+- Not tied to Windows as a development environment
+
+.html go-net/ymmv.html
+
+* The Plan
+
+- Reduce .NET surface area
+- Prepare for parallel operation
+- Implement server API endpoints in Go
+
+* Reduce the ASP.NET surface area
+
+Migrate web app away from Visual Studio .NET tooling
+
+End result:
+
+- Web application is built using `npm`, `gulp`, `webpack`
+- Build process copies static assets to ASP.NET project
+- ASP.NET project is confined to Web API, static assets
+
+Development environment:
+
+- Retained Visual Studio for ASP.NET
+- Moved to simpler, cross-platform tools for the web app
+
+.html go-net/solution-explorer.html
+
 
 * Preparing for dual operation
 
+Remove dependencies that would prevent simultaneous operation of .NET and Go backends.
+
+Allows for a phased approach to replacing the .NET server.
+
+In our case this meant:
+
 - Replace ASP.NET forms-based authentication
-- 
+- Remove reliance on session cookie
 
-* Reduce the surface area
+Oh yes, and:
 
-- Migrate web app away from Visual Studio .NET tooling
-- Build 'stand-alone' JS client using only standard JS tooling (npm, gulp, webpack, ...)
-- Visual Studio for ASP.NET, Visual Studio Code for web application
+- Replacing MS SQL Server with PostgreSQL
 
-* Pause
+* Replacing MS SQL Server with PostgreSQL? Really?
 
-- At this point we had an ASP.NET application that seemed an improvement
-- Not dissimilar to migrating to ASP.NET Core x.x
+Not strictly necessary: Go has a pretty good SQL Server driver (`https://github.com/denisenkom/go-mssqldb`)
 
-* Compatibility
+It was fairly easy for us to make the switch because:
 
-- Build equivalent scaffolding using Go templates to match Razor templates (image here)
+- Existing code made no use of SQL Server proprietary features
+- Fairly minimal use of relational DB
+- Use of NHibernate in the .NET code made switching straightforward
+
+The biggest problem we had was changing naming conventions:
+
+- PostgreSQL likes table and column names in `snake_case`
+- SQL Server convention was to name table and column names using `PascalCase`
+
+* Interlude
+
+At this point:
+
+- We had an ASP.NET application that seemed an improvement
+- Not entirely dissimilar to migrating to ASP.NET Core x.x
+- No Go code had to been written to get to this stage
+
+* Implement Server API Endpoints in Go
+
+.html go-net/flowchart.html
+.html go-net/api-checklist.html
+
+* Learnings
+
+* Use the standard library where possible
+
+Avoid looking for the following until you _really_ need it:
+
+.html go-net/highly-opinionated.html
+.html go-net/stdlib-packages.html
+
+* Package context
+
+- Originally a third party package: `"golang.org/x/net/context"`
+- Moved to the standard library, `"context"`, in Go 1.7
+- Exports `context.Context` type
+
+Useful for 
+
+- cancelling requests
+- imposing deadlines
+- recording request values
+
+* Package context (part 2)
+
+To a .NET developer, the `context` package is an interesting combination of:
+
+- `System.Threading.CancellationToken`
+- Thread Local Storage
+
+* Don't use package context for thread local storage
+
+Tempting, but don't do it.
+
+Reasons
+
+- Confusing for all the reasons that TLS is confusing
+- Lose track of dependencies -- one of the advantages of writing in Go
+- The Go way is to pass dependencies explicitly as parameters; now is a good time to move to that pattern
+
+But what about:
+
+- Request-specific loggers? Maybe
+- Database connections? No. Definitely not.
+
+* Good package design takes practise
+
+- Different layout to C# namespaces
+- Packages cannot have circular dependencies
+
+Things to avoid:
+
+- ASP.NET MVC style layouts (package `controllers`, package `views`)
+- Monolithic packages
+
+Some reading
+
+ Package Oriented Design
+ https://www.goinggo.net/2017/02/package-oriented-design.html
 
 
-* Context
+* Missing features are an opportunity to learn and contribute
 
-The context package is the closest thing to Thread Local Storage.
+In the process of migrating this project to Go I contributed to:
 
-Don't use it for TLS. Migrating to Go
-
-use context to store values, like strings and data structs; avoid using it to store references, like pointers or handles. As Sameer pointed out, this isn’t a bulletproof rule: you could make a case for a request-scoped logger, which could go into the context. But it’s a good place to start. (Peter Bourgon).
-
-* Deployment
-
-As more general advice, think carefully before choosing a platform or orchestration system—if you even choose one at all. Likewise for jumping onto the microservices bandwagon. An elegant monolith, deployed as an AMI to an autoscaling EC2 group, is a very productive setup for small teams. Resist, or at least carefully consider, the hype.
-
-(https://peter.bourgon.org/go-best-practices-2016/)
+- AWS SDK
+- Braintree payments
+- SQL Server driver
+- Go standard library (but only 10 lines or so)
 
 * What do I miss?
 
-- One thing really: decent debugger
+- One thing only. A decent debugger
 
