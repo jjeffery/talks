@@ -8,6 +8,8 @@ https://github.com/jjeffery
 
 * SQL? Really? That old thing?
 
+* SQL? Really?
+
 For many of us, working with SQL is a good choice
 
 - Existing infrastructure
@@ -22,23 +24,28 @@ CockroachDB
 - `https://cockroachlabs.com`
 - A cloud-native SQL database for building global, scalable cloud services that survive disasters
 - ACID and genuinely distributed
+- V1.0 released recently
+
+* High Availability SQL (con't)
 
 Amazon Aurora
 
-- Database size is unlimited
+- Unbounded database size
 - Data replicated over three availablity zones
 - MySQL compatible 
 - PostgreSQL compatibility is coming
 
+* Go standard library support for SQL
+
 * Go standard library
 
-`database/sql`
+*database/sql*
 
 - Generic SQL package
 - Similar in concept to JDBC, ADO.NET
 - Elegant design, small API surface area
 
-`database/sql/driver`
+*database/sql/driver*
 
 - Defines interfaces to implemented by database drivers
 - Typically not referenced directly by application code
@@ -175,13 +182,16 @@ Performing a query
 
 * My Experience
 
-- Tried `GORM` for a while and found it harder to use that I liked
+.html go-net/highly-opinionated.html
+
+- Tried `GORM` for a while
+- Found it harder to use than I would have liked
 - Moved to `sqlx` and found it easy to use but I still had some friction points
 
 *...*And*this*might*be*the*point*of*this*presentation*...*
 
 - One of the things I like about using Go is it has changed the way I think about writing software
-- I tend to rethink and implement solutions to problems differently, with simpler patterns
+- I tend to rethink and implement solutions to problems differently, with simpler patterns than I would use in (say) Java or C#
 
 * So where are my friction points and what can I do about them?
 
@@ -201,8 +211,9 @@ Performing a query
 
 .html go-sql/sqlr-banner.html
 
-- I think this is my fourth iteration at solving my problems
-- Documentation is in reasonably good shape, but still a bit to go
+- My fourth iteration at a simple-to-use SQL package
+- Documentation is in reasonably good shape
+- Code coverage OK, but room for improvement
 
 * Other 'friction points'
 
