@@ -8,29 +8,14 @@ https://github.com/jjeffery
 
 * SQL? Really? That old thing?
 
-We all know that:
-
-- SQL Databases don't scale
-- Difficult to make highly available 
-- Replication/failover no substitute for genuinely distributed database
-
-For many of us, working with SQL is a commercial requirement
+For many of us, working with SQL is a good choice
 
 - Existing infrastructure
-- Frequently SQL is a good choice
+- ACID
+- Ad-hoc queries
+- Highly mature products
 
-* NoSQL databases
-
-- Provide high availability
-- Many can work at very high scale
-
-BUT
-
-- Eventual consistency is _much_ more difficult than ACID.
-- Most NoSQL products limited ad-hoc query functionality, some have none.
-- Queries need to be identified at DB design stage 
-
-* Things are changing
+* High Availability SQL
 
 CockroachDB
 
