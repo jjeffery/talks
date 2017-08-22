@@ -1,0 +1,246 @@
+SQL and Go
+Options and Opinions
+23 Aug 2017
+
+John Jeffery
+jjeffery@sp.com.au
+https://github.com/jjeffery
+
+* SQL? Really? That old thing?
+
+We all know that:
+
+- SQL Databases don't scale
+- Difficult to make highly available 
+- Replication/failover no substitute for genuinely distributed database
+
+For many of us, working with SQL is a commercial requirement
+
+- Existing infrastructure
+- Frequently SQL is a good choice
+
+* NoSQL databases
+
+- Provide high availability
+- Many can work at very high scale
+
+BUT
+
+- Eventual consistency is _much_ more difficult than ACID.
+- Most NoSQL products limited ad-hoc query functionality, some have none.
+- Queries need to be identified at DB design stage 
+
+* Things are changing
+
+CockroachDB
+
+- `https://cockroachlabs.com`
+- A cloud-native SQL database for building global, scalable cloud services that survive disasters
+- ACID and genuinely distributed
+
+Amazon Aurora
+
+- Database size is unlimited
+- Data replicated over three availablity zones
+- MySQL compatible 
+- PostgreSQL compatibility is coming
+
+* Go standard library
+
+`database/sql`
+
+- Generic SQL package
+- Similar in concept to JDBC, ADO.NET
+- Elegant design, small API surface area
+
+`database/sql/driver`
+
+- Defines interfaces to implemented by database drivers
+- Typically not referenced directly by application code
+
+* Go standard library (con't)
+Features
+
+- Query multiple rows
+- Shortcut for querying a single rows
+- Transactions
+- Prepared statements
+
+The library was enhanced in Go 1.8 to include support for
+
+- Querying column types in the `Rows` returned by a query
+- Named arguments
+- Transaction isolation levels
+- Context-aware function variants allowing cancellation of queries
+- Some extra driver interfaces
+
+* Go standard library (con't)
+
+Establishing a connection with the DB
+.code go-sql/ex1.go /begin open/,/end open/
+
+* Go standard library (con't)
+
+Performing a query
+
+.code go-sql/ex1.go /begin query/,/end query/
+
+* That looks like a lot of effort
+
+.html go-sql/sad-face.html
+
+* FAQ: What's the best ORM for use with Go?
+
+* A: None
+
+This question has appeared a few times in go nuts and golang reddit, and this is the most popular answer.
+
+ Use package `github.com/jmoiron/sqlx`
+
+- Package `sqlx` extends the standard library with some convenience functions and is very popular.
+- We'll get to it a bit later.
+
+*But*
+
+I really, really want an ORM: Does Go have any?
+
+* There is no shortage of choice
+
+.html go-sql/orms.html
+
+Source: https://awesome-go.com/#orm
+
+* GORM: The fantastic ORM library for Golang ...
+
+.html go-sql/gorm-stars.html
+.html go-sql/gorm.html
+
+Source: https://github.com/jinzhu/gorm
+
+* GORM (con't)
+
+- Aims to be a fully featured ORM for Go in the same way (say) Hiberate is for Java
+- Amazing effort on the part of the authors
+- Maybe a little too much "magic" considering the Go philosophy?
+
+.html go-sql/gorm-example.html
+
+- But can 6,400 github stars can't be wrong, right?
+
+.html go-sql/gorm-stars-2.html
+
+* XORM
+.html go-sql/xorm-banner.html
+
+- Another popular choice. `https://xorm.io`
+- Similar feature set to GORM
+- Used for Gogs (Git hosting app built using Go) `https://gogs.io`
+
+.html go-sql/gogs-screenshot.html
+
+* SQL Boiler
+
+.html go-sql/sqlboiler-banner.html
+
+- `https://github.com/volatiletech/sqlboiler`
+- Uses a different approach to GORM, XORM and other 'traditional' ORMs.
+
+_Here's_how_it_works_
+
+- Define your database schema using whatever tools you want
+- Generate code using `go generate`
+- Your models have been created for you
+
+_Blast_from_the_past_
+
+- Reminicent of Entity Framework V3.5, CodeSmith generator, and similar tools from 10 years ago
+- `go`generate` might put a different slant on things but...
+- Everyone else stopped generating code from DB schemas a while ago
+
+* Typical Reddit/Go Nuts Question
+
+.html go-sql/reddit-question.html
+
+*Typical*Answer* (Hint: use `github.com/jmoiron/sqlx`)
+
+.html go-sql/reddit-answer.html
+
+* github.com/jmoiron/sqlx
+
+.html go-sql/sqlx-banner.html
+
+- Most consistent answer to question: _which_ORM_should_I_use?_
+- General purpose extensions to the Go standard library
+- Makes some use of reflection, but caches results to improve performance
+
+* github.com/jmoiron/sqlx (con't)
+
+Establishing a connection with the DB
+
+.code go-sql/sqlx1.go /begin open/,/end open/
+
+* github.com/jmoiron/sqlx (con't)
+
+Performing a query
+
+.code go-sql/sqlx1.go /begin query/,/end query/
+
+*Fewer*Lines*Of*Code* (and not too much magic)
+.html go-sql/happier-face.html
+
+* My Experience
+
+- Tried `GORM` for a while and found it harder to use that I liked
+- Moved to `sqlx` and found it easy to use but I still had some friction points
+
+*...*And*this*might*be*the*point*of*this*presentation*...*
+
+- One of the things I like about using Go is it has changed the way I think about writing software
+- I tend to rethink and implement solutions to problems differently, with simpler patterns
+
+* So where are my friction points and what can I do about them?
+
+.html go-sql/thinking-face.html
+
+* Friction point 1: Lots and lots of columns
+
+.code go-sql/big-insert.go /begin insert sql/,/end insert sql/
+
+- After writing a non-trivial amount of SQL code using `sqlx`, this came up as my number one problem
+
+* My solution: generate SQL columns from code
+
+.code go-sql/big-insert.go /begin insert example/,/end insert example/
+
+* github.com/jjeffery/sqlr
+
+.html go-sql/sqlr-banner.html
+
+- I think this is my fourth iteration at solving my problems
+- Documentation is in reasonably good shape, but still a bit to go
+
+* Other 'friction points'
+
+- Null columns
+.code go-sql/sqlr1.go /begin null/,/end null/
+- JSON columns
+.code go-sql/sqlr1.go /begin json/,/end json/
+
+* Other 'friction points' (con't)
+
+- WHERE IN clauses with multiple values
+.code go-sql/sqlr1.go /begin wherein/,/end wherein/
+- Autoincrement column values
+- Code generation for boilerplate code
+
+* Summary
+
+- Lots of choice for SQL in the Go ecosystem
+- Package `sqlx` is widely used and widely praised
+- ORMs may suit your purpose, but the general opinion on ORMs seems to mirror the general opinion of web frameworks (YAGNI)
+- Please take a look at `github.com/jjeffery/sqlr` -- feedback appreciated
+
+*Look*at*your*own*friction*points,*be*creative*
+
+
+
