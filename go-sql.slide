@@ -8,6 +8,8 @@ https://github.com/jjeffery
 
 * SQL? Really? That old thing?
 
+* SQL
+
 For many of us, working with SQL is a good choice
 
 - Existing infrastructure
@@ -22,25 +24,29 @@ CockroachDB
 - `https://cockroachlabs.com`
 - A cloud-native SQL database for building global, scalable cloud services that survive disasters
 - ACID and genuinely distributed
+- Written in Go (single executable deployment)
+- V1.0 released recently
+
+* High Availability SQL (con't)
 
 Amazon Aurora
 
-- Database size is unlimited
+- Unbounded database size
 - Data replicated over three availablity zones
 - MySQL compatible 
 - PostgreSQL compatibility is coming
 
-* Support for SQL in Go
+* Go standard library support for SQL
 
 * Go standard library
 
-`database/sql`
+*database/sql*
 
 - Generic SQL package
 - Similar in concept to JDBC, ADO.NET
 - Elegant design, small API surface area
 
-`database/sql/driver`
+*database/sql/driver*
 
 - Defines interfaces to implemented by database drivers
 - Typically not referenced directly by application code
@@ -210,11 +216,13 @@ Or if you are using PostgreSQL
 
 * Generating SQL columns from code (con't)
 
-The trick to being able to insert column lists is you need to:
+The trick to being able to insert column lists into arbitrary SQL is you need to:
 
 - Determine the fields in the structure using reflection
+- Extract additional schema info from struct field tags (eg primary key, autoincrement)
 - Parse the SQL so you know which clause you are inserting into
  select clause                 : `col1`,`col2`,`col3`,`col4`
+ insert into clause            : `col1`,`col2`,`col3`,`col4`
  insert into ... values clause : ?,?,?,?
  update ... set clause         : `col1`=?,`col2`=?,`col3`=?,`col4`=?
  update ... where  clause      : `col1`=? and `col2`=? and `col3`=? and `col4`=?
