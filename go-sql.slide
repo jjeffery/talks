@@ -30,6 +30,8 @@ Amazon Aurora
 - MySQL compatible 
 - PostgreSQL compatibility is coming
 
+* Support for SQL in Go
+
 * Go standard library
 
 `database/sql`
@@ -51,7 +53,9 @@ Features
 - Transactions
 - Prepared statements
 
-The library was enhanced in Go 1.8 to include support for
+* Go standard library (con't)
+
+Package `database/sql` was enhanced in Go 1.8 to include support for
 
 - Querying column types in the `Rows` returned by a query
 - Named arguments
@@ -76,20 +80,43 @@ Performing a query
 
 * FAQ: What's the best ORM for use with Go?
 
-* A: None
+* Typical Reddit/Go Nuts Question
 
-This question has appeared a few times in go nuts and golang reddit, and this is the most popular answer.
+.html go-sql/reddit-question.html
 
- Use package `github.com/jmoiron/sqlx`
+*Typical*Answer* (Hint: use `github.com/jmoiron/sqlx`)
 
-- Package `sqlx` extends the standard library with some convenience functions and is very popular.
-- We'll get to it a bit later.
+.html go-sql/reddit-answer.html
 
-*But*
+* github.com/jmoiron/sqlx
 
-I really, really want an ORM: Does Go have any?
+.html go-sql/sqlx-banner.html
+
+- Most consistent answer to question: _which_ORM_should_I_use?_
+- Package `sqlx` is *not* an ORM
+- General purpose extensions to the Go standard library
+- Makes some use of reflection, but caches results to improve performance
+
+* github.com/jmoiron/sqlx (con't)
+
+Establishing a connection with the DB
+
+.code go-sql/sqlx1.go /begin open/,/end open/
+
+* github.com/jmoiron/sqlx (con't)
+
+Performing a query
+
+.code go-sql/sqlx1.go /begin query/,/end query/
+
+*Fewer*Lines*Of*Code* (and not too much magic)
+.html go-sql/happier-face.html
+
+* I really, really want an ORM: Does Go have any?
 
 * There is no shortage of choice
+
+: Maybe this indicates something?
 
 .html go-sql/orms.html
 
@@ -100,7 +127,7 @@ Source: https://awesome-go.com/#orm
 .html go-sql/gorm-stars.html
 .html go-sql/gorm.html
 
-Source: https://github.com/jinzhu/gorm
+Source: https://github.com/jinzhu/gorm (my emphasis added)
 
 * GORM (con't)
 
@@ -138,40 +165,8 @@ _Here's_how_it_works_
 
 _Blast_from_the_past_
 
-- Reminicent of Entity Framework V3.5, CodeSmith generator, and similar tools from 10 years ago
-- `go`generate` might put a different slant on things but...
-- Everyone else stopped generating code from DB schemas a while ago
-
-* Typical Reddit/Go Nuts Question
-
-.html go-sql/reddit-question.html
-
-*Typical*Answer* (Hint: use `github.com/jmoiron/sqlx`)
-
-.html go-sql/reddit-answer.html
-
-* github.com/jmoiron/sqlx
-
-.html go-sql/sqlx-banner.html
-
-- Most consistent answer to question: _which_ORM_should_I_use?_
-- General purpose extensions to the Go standard library
-- Makes some use of reflection, but caches results to improve performance
-
-* github.com/jmoiron/sqlx (con't)
-
-Establishing a connection with the DB
-
-.code go-sql/sqlx1.go /begin open/,/end open/
-
-* github.com/jmoiron/sqlx (con't)
-
-Performing a query
-
-.code go-sql/sqlx1.go /begin query/,/end query/
-
-*Fewer*Lines*Of*Code* (and not too much magic)
-.html go-sql/happier-face.html
+- Handles relationships between entities quite well
+- Reminicent of Entity Framework V3.5, CodeSmith generator (for those with a .NET background)
 
 * My Experience
 
@@ -181,7 +176,9 @@ Performing a query
 *...*And*this*might*be*the*point*of*this*presentation*...*
 
 - One of the things I like about using Go is it has changed the way I think about writing software
-- I tend to rethink and implement solutions to problems differently, with simpler patterns
+- I tend to want to rethink and implement solutions to problems differently, with simpler patterns
+
+.html go-sql/highly-opinionated.html
 
 * So where are my friction points and what can I do about them?
 
@@ -193,39 +190,65 @@ Performing a query
 
 - After writing a non-trivial amount of SQL code using `sqlx`, this came up as my number one problem
 
-* My solution: generate SQL columns from code
+* Generating SQL columns from code
 
 .code go-sql/big-insert.go /begin insert example/,/end insert example/
+
+* Generating SQL columns from code (con't)
+
+So 
+
+.code go-sql/big-insert.go /begin sqlr line/,/end sqlr line/
+
+Is similar to writing
+
+.code go-sql/big-insert.go /begin mysql line/,/end mysql line/
+
+Or if you are using PostgreSQL
+
+.code go-sql/big-insert.go /begin postgres line/,/end postgres line/
+
+* Generating SQL columns from code (con't)
+
+The trick to being able to insert column lists is you need to:
+
+- Determine the fields in the structure using reflection
+- Parse the SQL so you know which clause you are inserting into
+ select clause                 : `col1`,`col2`,`col3`,`col4`
+ insert into ... values clause : ?,?,?,?
+ update ... set clause         : `col1`=?,`col2`=?,`col3`=?,`col4`=?
+ update ... where  clause      : `col1`=? and `col2`=? and `col3`=? and `col4`=?
+
+- Have some understanding of the SQL dialect (ie `?` for MySQL vs `$1` for PostgreSQL)
+- Understand the naming convention (eg `UserID` field becomes `user_id` column)
+- Cache all of the above for performance
 
 * github.com/jjeffery/sqlr
 
 .html go-sql/sqlr-banner.html
 
-- I think this is my fourth iteration at solving my problems
-- Documentation is in reasonably good shape, but still a bit to go
+.html go-sql/shameless-plug.html
 
-* Other 'friction points'
+- Documentation is in reasonably good shape
+- Test coverage is OK, but room for improvement
+
+* Other 'friction points' that have been addressed
 
 - Null columns
-.code go-sql/sqlr1.go /begin null/,/end null/
 - JSON columns
-.code go-sql/sqlr1.go /begin json/,/end json/
-
-* Other 'friction points' (con't)
-
 - WHERE IN clauses with multiple values
-.code go-sql/sqlr1.go /begin wherein/,/end wherein/
-- Autoincrement column values
-- Code generation for boilerplate code
+- Generating boilerplate code using `go generate`
 
 * Summary
 
-- Lots of choice for SQL in the Go ecosystem
-- Package `sqlx` is widely used and widely praised
-- ORMs may suit your purpose, but the general opinion on ORMs seems to mirror the general opinion of web frameworks (YAGNI)
-- Please take a look at `github.com/jjeffery/sqlr` -- feedback appreciated
+There is a lot of choice in the Go ecosystem for handling SQL queries
 
-*Look*at*your*own*friction*points,*be*creative*
+- The standard library is a well designed base. Significant enhancements in Go 1.8
+- Package `sqlx` is widely used and widely praised
+- ORMs may suit your purpose, but you are unlikely to find one with all of the features available in language _Blub_
+- If you are interested, please take a look at *github.com/jjeffery/sqlr* -- feedback appreciated
+
+
 
 
 

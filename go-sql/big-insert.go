@@ -28,7 +28,7 @@ insert into DiaryItems(
 func doInsert() {
 	// begin insert example OMIT
 	type User struct {
-		UserID     int `sql:"primary key autoincrement"`
+		UserID     int `sql:"primary key"`
 		GivenName  string
 		FamilyName string
 		DOB        time.Time
@@ -48,4 +48,25 @@ func doInsert() {
 
 	err := schema.Exec(db, user, "insert into users({}) values({})") // HL
 	// end insert example OMIT
+}
+
+func doInsert2() {
+	// begin sqlr line OMIT
+	err := schema.Exec(db, user, "insert into users({}) values({})")
+	// end sqlr line OMIT
+
+	// begin mysql line OMIT
+	_, err := db.Exec("insert into users(`user_id`,`given_name`,`family_name`,`dob`"+
+		",`birthplace`,`created_at`,`modified_at`) values (?,?,?,?,?,?,?)",
+		user.UserID, user.GivenName, user.FamilyName, user.DOB, user.Birthplace,
+		user.CreatedAt, user.ModifiedAt)
+	// end mysql line OMIT
+
+	// begin postgres line OMIT
+	_, err := db.Exec(`insert into users("user_id","given_name","family_name","dob"
+	,"birthplace","created_at","modified_at") values ($1,$2,$3,$4,$5,$6,$7)`,
+		user.UserID, user.GivenName, user.FamilyName, user.DOB, user.Birthplace,
+		user.CreatedAt, user.ModifiedAt)
+	// end postgres line OMIT
+
 }
